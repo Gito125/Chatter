@@ -53,6 +53,10 @@ test('Socket Flow - User Join and Broadcast', async () => {
     client2.on(EVENTS.USER_JOINED, (data) => resolve(data));
   });
 
+  const usersListPromise = new Promise((resolve) => {
+    client1.on(EVENTS.USERS_LIST, (data) => resolve(data));
+  });
+
   const ack = await new Promise((resolve) => {
     client1.emit(EVENTS.USER_JOIN, { username: 'Alice' }, resolve);
   });
@@ -60,6 +64,13 @@ test('Socket Flow - User Join and Broadcast', async () => {
   assert.ok(ack.success);
   assert.equal(ack.user.username, 'Alice');
 
+  // Verify client1 received USERS_LIST snapshot
+  const initialSnapshot = await usersListPromise;
+  assert.ok(Array.isArray(initialSnapshot.users));
+  assert.equal(initialSnapshot.users.length, 1);
+  assert.equal(initialSnapshot.users[0].username, 'Alice');
+
+  // Verify client2 received USER_JOINED broadcast
   const broadcastData = await joinedPromise;
   assert.equal(broadcastData.username, 'Alice');
   assert.equal(broadcastData.users.length, 1);
@@ -67,6 +78,69 @@ test('Socket Flow - User Join and Broadcast', async () => {
 
   client1.disconnect();
   client2.disconnect();
+});
+
+test('Socket Flow - Multi-Client Presence Roster Snapshot and Departure Sync', async () => {
+  const client1 = await connectClient();
+  const client2 = await connectClient();
+  const client3 = await connectClient();
+
+  // Client 1 joins as Alice
+  await new Promise((resolve) => client1.emit(EVENTS.USER_JOIN, { username: 'Alice' }, resolve));
+
+  // Client 1 sets up listener for Client 2 arrival
+  const c1BobJoinedPromise = new Promise((resolve) => {
+    client1.once(EVENTS.USER_JOINED, (data) => resolve(data));
+  });
+
+  // Client 2 joins as Bob - Client 2 should receive [Alice, Bob] in users:list snapshot
+  const c2SnapshotPromise = new Promise((resolve) => {
+    client2.once(EVENTS.USERS_LIST, (data) => resolve(data));
+  });
+
+  await new Promise((resolve) => client2.emit(EVENTS.USER_JOIN, { username: 'Bob' }, resolve));
+
+  const c2Snapshot = await c2SnapshotPromise;
+  assert.equal(c2Snapshot.users.length, 2);
+  const c2Usernames = c2Snapshot.users.map(u => u.username).sort();
+  assert.deepEqual(c2Usernames, ['Alice', 'Bob']);
+
+  const bobJoinedData = await c1BobJoinedPromise;
+  assert.equal(bobJoinedData.username, 'Bob');
+  assert.equal(bobJoinedData.users.length, 2);
+
+  // Client 3 joins as Charlie
+  const c1CharlieJoinedPromise = new Promise((resolve) => {
+    client1.once(EVENTS.USER_JOINED, (data) => resolve(data));
+  });
+  await new Promise((resolve) => client3.emit(EVENTS.USER_JOIN, { username: 'Charlie' }, resolve));
+  const c1JoinedData = await c1CharlieJoinedPromise;
+  assert.equal(c1JoinedData.username, 'Charlie');
+  assert.equal(c1JoinedData.users.length, 3);
+
+  // Client 2 (Bob) leaves
+  const c1LeftPromise = new Promise((resolve) => {
+    client1.once(EVENTS.USER_LEFT, (data) => resolve(data));
+  });
+  const c3LeftPromise = new Promise((resolve) => {
+    client3.once(EVENTS.USER_LEFT, (data) => resolve(data));
+  });
+
+  client2.disconnect();
+
+  const c1LeftData = await c1LeftPromise;
+  const c3LeftData = await c3LeftPromise;
+
+  assert.equal(c1LeftData.username, 'Bob');
+  assert.equal(c1LeftData.users.length, 2);
+  const remaining = c1LeftData.users.map(u => u.username).sort();
+  assert.deepEqual(remaining, ['Alice', 'Charlie']);
+
+  assert.equal(c3LeftData.username, 'Bob');
+  assert.equal(c3LeftData.users.length, 2);
+
+  client1.disconnect();
+  client3.disconnect();
 });
 
 test('Socket Flow - Two Clients Bidirectional Messaging', async () => {

@@ -40,7 +40,12 @@ const registerSocketHandlers = (io) => {
           username: trimmedUsername,
         });
 
-        // Broadcast to all clients that a new user has joined
+        // Send initial active users snapshot directly to the joining client
+        socket.emit(EVENTS.USERS_LIST, {
+          users: store.getAllUsers(),
+        });
+
+        // Broadcast to all clients that a new user has joined with updated roster
         io.emit(EVENTS.USER_JOINED, {
           username: user.username,
           users: store.getAllUsers(),

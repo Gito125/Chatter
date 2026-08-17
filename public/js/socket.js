@@ -37,14 +37,27 @@ window.Chatter.socket = {
       return;
     }
 
+    this.currentUser = username;
+
     this.socket.emit('user:join', { username }, (response) => {
-      if (response && response.success) {
-        this.currentUser = username;
+      if (response && response.error) {
+        this.currentUser = null;
       }
       if (typeof callback === 'function') {
         callback(response);
       }
     });
+  },
+
+  /**
+   * Subscribe to initial users roster snapshot.
+   * @param {Function} handler - Users list event handler
+   */
+  onUsersList(handler) {
+    if (!this.socket) this.init();
+    if (this.socket && typeof handler === 'function') {
+      this.socket.on('users:list', handler);
+    }
   },
 
   /**

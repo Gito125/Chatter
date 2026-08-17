@@ -53,35 +53,60 @@
         </div>
         <p class="room-topic">Real-time public chat room</p>
       </div>
+      <div class="header-right">
+        <div id="user-count-badge" class="user-count-badge" aria-live="polite">
+          <span class="status-dot online"></span>
+          <span id="user-count-text">0 online</span>
+        </div>
+      </div>
     </header>
 
-    <!-- Chat Messages Stream -->
-    <main id="messages-container" class="messages-container" tabindex="0">
-      <div id="messages-list" class="messages-list" role="log" aria-live="polite">
-        <!-- Messages dynamically rendered by ui.js -->
-      </div>
-    </main>
-
-    <!-- Chat Input Bar -->
-    <footer class="chat-footer">
-      <form id="message-form" class="chat-input-form" novalidate>
-        <div class="input-wrapper">
-          <label for="message-input" class="sr-only">Message</label>
-          <input
-            type="text"
-            id="message-input"
-            class="chat-input"
-            placeholder="Type a message..."
-            maxlength="500"
-            autocomplete="off"
-            required
-          >
+    <!-- Main Chat Layout (Sidebar + Chat Area) -->
+    <div class="chat-main-container">
+      <!-- Online Users Sidebar -->
+      <aside id="users-sidebar" class="users-sidebar" aria-label="Online Users">
+        <div class="sidebar-header">
+          <h2 class="sidebar-title">Online Users</h2>
+          <span id="sidebar-user-count" class="badge">0</span>
         </div>
-        <button type="submit" id="send-btn" class="btn btn-send" aria-label="Send message">
-          <span>Send</span>
-        </button>
-      </form>
-    </footer>
+        <div class="sidebar-content">
+          <ul id="users-list" class="users-list" role="list">
+            <!-- User items dynamically rendered by ui.js -->
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Chat Area -->
+      <section class="chat-area">
+        <!-- Chat Messages Stream -->
+        <main id="messages-container" class="messages-container" tabindex="0">
+          <div id="messages-list" class="messages-list" role="log" aria-live="polite">
+            <!-- Messages dynamically rendered by ui.js -->
+          </div>
+        </main>
+
+        <!-- Chat Input Bar -->
+        <footer class="chat-footer">
+          <form id="message-form" class="chat-input-form" novalidate>
+            <div class="input-wrapper">
+              <label for="message-input" class="sr-only">Message</label>
+              <input
+                type="text"
+                id="message-input"
+                class="chat-input"
+                placeholder="Type a message..."
+                maxlength="500"
+                autocomplete="off"
+                required
+              >
+            </div>
+            <button type="submit" id="send-btn" class="btn btn-send" aria-label="Send message">
+              <span>Send</span>
+            </button>
+          </form>
+        </footer>
+      </section>
+    </div>
   </div>
 
   <!-- Socket.IO client library (served by Express backend) -->
