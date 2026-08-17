@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatter — Real-Time Chat</title>
+  <meta name="description" content="A lightweight, responsive real-time web chat application built with Node.js and Socket.IO.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Initial Username Entry Modal Overlay -->
+  <div id="username-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="brand-badge">
+          <span class="brand-icon">💬</span>
+        </div>
+        <h1 id="modal-title" class="modal-title">Welcome to Chatter</h1>
+        <p class="modal-subtitle">Enter a display name to join the conversation.</p>
+      </div>
+
+      <form id="username-form" class="modal-form" novalidate>
+        <div class="input-group">
+          <label for="username-input" class="sr-only">Username</label>
+          <input
+            type="text"
+            id="username-input"
+            class="form-input"
+            placeholder="Choose a username (1–25 characters)"
+            maxlength="25"
+            autocomplete="off"
+            required
+            autofocus
+          >
+          <div id="username-error" class="form-error" role="alert" aria-live="assertive"></div>
+        </div>
+
+        <button type="submit" id="join-btn" class="btn btn-primary btn-block">
+          Join Chat
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Chat Application Container -->
+  <div id="app" class="chat-app">
+    <!-- Chat Header -->
+    <header class="chat-header">
+      <div class="header-left">
+        <div class="brand-title">
+          <span class="brand-logo-text">Chatter</span>
+          <span class="room-pill">#general</span>
+        </div>
+        <p class="room-topic">Real-time public chat room</p>
+      </div>
+    </header>
+
+    <!-- Chat Messages Stream -->
+    <main id="messages-container" class="messages-container" tabindex="0">
+      <div id="messages-list" class="messages-list" role="log" aria-live="polite">
+        <!-- Messages dynamically rendered by ui.js -->
+      </div>
+    </main>
+
+    <!-- Chat Input Bar -->
+    <footer class="chat-footer">
+      <form id="message-form" class="chat-input-form" novalidate>
+        <div class="input-wrapper">
+          <label for="message-input" class="sr-only">Message</label>
+          <input
+            type="text"
+            id="message-input"
+            class="chat-input"
+            placeholder="Type a message..."
+            maxlength="500"
+            autocomplete="off"
+            required
+          >
+        </div>
+        <button type="submit" id="send-btn" class="btn btn-send" aria-label="Send message">
+          <span>Send</span>
+        </button>
+      </form>
+    </footer>
+  </div>
+
+  <!-- Socket.IO client library (served by Express backend) -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Modular Client Architecture Scripts -->
+  <script src="js/theme.js"></script>
+  <script src="js/emoji.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/socket.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
