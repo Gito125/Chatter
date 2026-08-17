@@ -88,8 +88,18 @@ window.Chatter.app = {
       ui.scrollToBottom();
     });
 
+    // Inbound socket event: initial users roster snapshot
+    socket.onUsersList((data) => {
+      if (data && Array.isArray(data.users)) {
+        ui.renderUserList(data.users, socket.currentUser);
+      }
+    });
+
     // Inbound socket event: peer user joined
     socket.onUserJoined((data) => {
+      if (data && Array.isArray(data.users)) {
+        ui.renderUserList(data.users, socket.currentUser);
+      }
       if (data && data.username && data.username !== socket.currentUser) {
         ui.renderSystemMessage(`${data.username} joined the chat`);
         ui.scrollToBottom();
@@ -98,6 +108,9 @@ window.Chatter.app = {
 
     // Inbound socket event: peer user left
     socket.onUserLeft((data) => {
+      if (data && Array.isArray(data.users)) {
+        ui.renderUserList(data.users, socket.currentUser);
+      }
       if (data && data.username) {
         ui.renderSystemMessage(`${data.username} left the chat`);
         ui.scrollToBottom();
