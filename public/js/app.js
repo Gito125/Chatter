@@ -246,6 +246,15 @@ window.Chatter.app = {
       });
     }
 
+    // Handle mobile user count badge click to open sidebar drawer
+    if (ui.elements.userCountBadge) {
+      ui.elements.userCountBadge.addEventListener('click', () => {
+        if (window.innerWidth < 768) {
+          ui.toggleSidebar();
+        }
+      });
+    }
+
     // Handle mobile sidebar close button click
     if (ui.elements.sidebarCloseBtn) {
       ui.elements.sidebarCloseBtn.addEventListener('click', () => {

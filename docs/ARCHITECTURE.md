@@ -51,8 +51,7 @@ Chatter is engineered around a clean **Separation of Concerns (SoC)** spanning a
 |  | src/socket/handlers.js                                                            |  |
 |  | - Incoming Connection & Event Routing                                            |  |
 |  | - Payload Validation & Sanitization                                               |  |
-|  | - Broadcast & Exclusion Logic                                                     |  |
-|  | - References: src/socket/events.js (Constants Matrix)                             |  |
+|  | -![alt text](image.png)                           |  |
 |  +----------------------------------+------------------------------------------------+  |
 |                                     |                                                   |
 |  +----------------------------------v------------------------------------------------+  |

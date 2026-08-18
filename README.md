@@ -1,5 +1,7 @@
 # Chatter
 
+![Chatter Preview](public/assets/og-image.png)
+
 Chatter is a lightweight, responsive real-time web chat application engineered with Node.js, Express, Socket.IO, and Vanilla HTML/CSS/JavaScript. It demonstrates how to build resilient, bidirectional communication architectures with sub-50ms message propagation, live presence tracking, debounced typing feedback, and adaptive dual-theming—completely free of client-side bundlers, transpilers, or frontend framework overhead.
 
 ---
