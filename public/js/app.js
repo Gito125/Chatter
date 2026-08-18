@@ -171,6 +171,44 @@ window.Chatter.app = {
       });
     }
 
+    // Handle mobile sidebar drawer toggle button click
+    if (ui.elements.sidebarToggleBtn) {
+      ui.elements.sidebarToggleBtn.addEventListener('click', () => {
+        ui.toggleSidebar();
+      });
+    }
+
+    // Handle mobile sidebar close button click
+    if (ui.elements.sidebarCloseBtn) {
+      ui.elements.sidebarCloseBtn.addEventListener('click', () => {
+        ui.closeSidebar();
+      });
+    }
+
+    // Handle mobile sidebar backdrop click to dismiss drawer
+    if (ui.elements.sidebarBackdrop) {
+      ui.elements.sidebarBackdrop.addEventListener('click', () => {
+        ui.closeSidebar();
+      });
+    }
+
+    // Global keyboard listener for Escape key to close mobile drawer
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && ui.isSidebarOpen()) {
+        ui.closeSidebar();
+        if (ui.elements.sidebarToggleBtn) {
+          ui.elements.sidebarToggleBtn.focus();
+        }
+      }
+    });
+
+    // Window resize listener to automatically dismiss mobile drawer on desktop transition
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 768 && ui.isSidebarOpen()) {
+        ui.closeSidebar();
+      }
+    });
+
     // Inbound socket event: message history snapshot on join
     socket.onMessageHistory((data) => {
       if (data && Array.isArray(data.messages)) {

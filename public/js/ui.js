@@ -48,7 +48,83 @@ window.Chatter.ui = {
       scrollBottomText: document.getElementById('scroll-bottom-text'),
       themeToggleBtn: document.getElementById('theme-toggle-btn'),
       themeToggleIcon: document.getElementById('theme-toggle-icon'),
+      sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
+      sidebarToggleIcon: document.getElementById('sidebar-toggle-icon'),
+      sidebarCloseBtn: document.getElementById('sidebar-close-btn'),
+      sidebarBackdrop: document.getElementById('sidebar-backdrop'),
     };
+  },
+
+  /**
+   * Check whether the mobile drawer is currently open.
+   * @returns {boolean} True if drawer has 'open' class
+   */
+  isSidebarOpen() {
+    return Boolean(this.elements.usersSidebar && this.elements.usersSidebar.classList.contains('open'));
+  },
+
+  /**
+   * Open the mobile online users drawer.
+   */
+  openSidebar() {
+    const { usersSidebar, sidebarBackdrop, sidebarToggleBtn } = this.elements;
+    if (!usersSidebar) return;
+
+    usersSidebar.classList.add('open');
+    usersSidebar.setAttribute('aria-hidden', 'false');
+
+    if (sidebarBackdrop) {
+      sidebarBackdrop.classList.remove('hidden');
+      sidebarBackdrop.setAttribute('aria-hidden', 'false');
+    }
+
+    if (sidebarToggleBtn) {
+      sidebarToggleBtn.setAttribute('aria-expanded', 'true');
+      sidebarToggleBtn.setAttribute('aria-label', 'Close online users roster');
+    }
+
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.classList.add('drawer-open');
+    }
+  },
+
+  /**
+   * Close the mobile online users drawer.
+   */
+  closeSidebar() {
+    const { usersSidebar, sidebarBackdrop, sidebarToggleBtn } = this.elements;
+    if (!usersSidebar) return;
+
+    usersSidebar.classList.remove('open');
+
+    // On desktop, aria-hidden should be false; on mobile when closed, true
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+    usersSidebar.setAttribute('aria-hidden', isDesktop ? 'false' : 'true');
+
+    if (sidebarBackdrop) {
+      sidebarBackdrop.classList.add('hidden');
+      sidebarBackdrop.setAttribute('aria-hidden', 'true');
+    }
+
+    if (sidebarToggleBtn) {
+      sidebarToggleBtn.setAttribute('aria-expanded', 'false');
+      sidebarToggleBtn.setAttribute('aria-label', 'Open online users roster');
+    }
+
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.classList.remove('drawer-open');
+    }
+  },
+
+  /**
+   * Toggle the mobile online users drawer state.
+   */
+  toggleSidebar() {
+    if (this.isSidebarOpen()) {
+      this.closeSidebar();
+    } else {
+      this.openSidebar();
+    }
   },
 
   /**
