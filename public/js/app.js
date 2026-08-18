@@ -94,10 +94,69 @@ window.Chatter.app = {
 
           // Successfully joined
           ui.hideModal();
+          ui.setChatInputDisabled(false);
           ui.focusMessageInput();
+          ui.renderConnectionStatus('hidden');
         });
       });
     }
+
+    // Socket connection lifecycle event listeners
+    socket.onDisconnect((reason) => {
+      this.stopSelfTyping();
+      ui.renderConnectionStatus('disconnected');
+      ui.setChatInputDisabled(true, 'Disconnected from server...');
+    });
+
+    socket.onReconnectAttempt((attemptNumber) => {
+      this.stopSelfTyping();
+      ui.renderConnectionStatus('reconnecting', { attempt: attemptNumber });
+      ui.setChatInputDisabled(true, `Reconnecting to chat... (attempt ${attemptNumber || 1})`);
+    });
+
+    socket.onConnectError((error) => {
+      this.stopSelfTyping();
+      ui.renderConnectionStatus('disconnected');
+      ui.setChatInputDisabled(true, 'Connection error. Retrying...');
+    });
+
+    socket.onConnect(() => {
+      if (socket.hasJoined && socket.currentUser) {
+        socket.rejoin((response) => {
+          if (response && response.success) {
+            ui.renderConnectionStatus('connected');
+            ui.setChatInputDisabled(false);
+          } else if (response && response.error) {
+            socket.hasJoined = false;
+            ui.showError(response.error);
+            ui.showModal();
+            ui.focusUsernameInput();
+            ui.renderConnectionStatus('hidden');
+            ui.setChatInputDisabled(true, 'Please choose a username...');
+          }
+        });
+      } else {
+        ui.renderConnectionStatus('hidden');
+      }
+    });
+
+    socket.onReconnect((attemptNumber) => {
+      if (socket.hasJoined && socket.currentUser) {
+        socket.rejoin((response) => {
+          if (response && response.success) {
+            ui.renderConnectionStatus('connected');
+            ui.setChatInputDisabled(false);
+          } else if (response && response.error) {
+            socket.hasJoined = false;
+            ui.showError(response.error);
+            ui.showModal();
+            ui.focusUsernameInput();
+            ui.renderConnectionStatus('hidden');
+            ui.setChatInputDisabled(true, 'Please choose a username...');
+          }
+        });
+      }
+    });
 
     // Handle input typing events with 3000ms debouncing
     if (ui.elements.messageInput) {

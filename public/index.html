@@ -112,6 +112,14 @@
 
       <!-- Chat Area -->
       <section class="chat-area">
+        <!-- Real-Time Connection Status Banner -->
+        <div id="connection-status" class="connection-status hidden" role="status" aria-live="polite">
+          <div class="connection-status-content">
+            <span id="connection-status-dot" class="status-dot warning" aria-hidden="true"></span>
+            <span id="connection-status-text" class="connection-status-text">Connecting to server...</span>
+          </div>
+        </div>
+
         <!-- Chat Messages Stream -->
         <main id="messages-container" class="messages-container" tabindex="0">
           <div id="messages-list" class="messages-list" role="log" aria-live="polite">

@@ -25,6 +25,47 @@ const generateMessageId = () => {
 };
 
 /**
+ * Check whether a username is already taken by another active user.
+ * Performs a case-insensitive comparison.
+ * @param {string} username - Candidate username
+ * @param {string} [excludeSocketId=null] - Optional socket ID to exclude from check
+ * @returns {boolean} True if username is already registered
+ */
+const isUsernameTaken = (username, excludeSocketId = null) => {
+  if (!username || typeof username !== 'string') return false;
+  const normalized = username.trim().toLowerCase();
+  if (!normalized) return false;
+
+  for (const user of users.values()) {
+    if (excludeSocketId && user.id === excludeSocketId) {
+      continue;
+    }
+    if (user.username.toLowerCase() === normalized) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
+ * Retrieve a user record by username (case-insensitive).
+ * @param {string} username - Username to look up
+ * @returns {Object|null} User record if found, or null
+ */
+const getUserByUsername = (username) => {
+  if (!username || typeof username !== 'string') return null;
+  const normalized = username.trim().toLowerCase();
+  if (!normalized) return null;
+
+  for (const user of users.values()) {
+    if (user.username.toLowerCase() === normalized) {
+      return user;
+    }
+  }
+  return null;
+};
+
+/**
  * Register a user in the in-memory store.
  * @param {Object} params
  * @param {string} params.id - Socket connection ID
@@ -39,6 +80,10 @@ const addUser = ({ id, username }) => {
   const trimmedUsername = (username || '').trim();
   if (!trimmedUsername || trimmedUsername.length > 25) {
     throw new Error('Username must be between 1 and 25 characters');
+  }
+
+  if (isUsernameTaken(trimmedUsername, id)) {
+    throw new Error('Username is already taken');
   }
 
   const user = {
@@ -143,6 +188,8 @@ const store = {
   getUser,
   removeUser,
   getAllUsers,
+  isUsernameTaken,
+  getUserByUsername,
   saveMessage,
   getRecentMessages,
   clearStore,
@@ -154,6 +201,8 @@ module.exports = {
   getUser,
   removeUser,
   getAllUsers,
+  isUsernameTaken,
+  getUserByUsername,
   saveMessage,
   getRecentMessages,
   clearStore,
