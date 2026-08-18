@@ -129,3 +129,54 @@ test('Rubric Gate 10 - HTML Sidebar Roster & Status Dot Structure', () => {
   assert.match(html, /id="user-count-text"/);
   assert.match(html, /status-dot/);
 });
+
+test('Sprint 3 Gate 1 - Typing Event Constants Architecture', () => {
+  const { EVENTS } = require('../src/socket/events');
+  assert.equal(EVENTS.USER_TYPING, 'user:typing');
+  assert.equal(EVENTS.USER_TYPING_UPDATE, 'user:typing');
+});
+
+test('Sprint 3 Gate 2 - Server Handlers Broadcast Isolation', () => {
+  const handlersCode = fs.readFileSync(path.join(ROOT_DIR, 'src/socket/handlers.js'), 'utf8');
+  assert.match(handlersCode, /EVENTS\.USER_TYPING/);
+  assert.match(handlersCode, /socket\.broadcast\.emit\s*\(\s*EVENTS\.USER_TYPING_UPDATE/);
+  assert.match(handlersCode, /store\.getUser\s*\(\s*socket\.id\s*\)/);
+});
+
+test('Sprint 3 Gate 3 - Semantic HTML Typing Banner', () => {
+  const html = fs.readFileSync(path.join(ROOT_DIR, 'public/index.html'), 'utf8');
+  assert.match(html, /id="typing-indicator"/);
+  assert.match(html, /id="typing-text"/);
+  assert.match(html, /class="[^"]*typing-dots[^"]*"/);
+});
+
+test('Sprint 3 Gate 4 - CSS Keyframes and Zero Hardcoded Colors for Typing Banner', () => {
+  const css = fs.readFileSync(path.join(ROOT_DIR, 'public/css/styles.css'), 'utf8');
+  assert.match(css, /\.typing-indicator/);
+  assert.match(css, /\.typing-dots/);
+  assert.match(css, /\.typing-dot/);
+  assert.match(css, /@keyframes\s+typing-bounce/);
+});
+
+test('Sprint 3 Gate 5 - Frontend Socket Typing Methods', () => {
+  const socketJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/socket.js'), 'utf8');
+  assert.match(socketJs, /sendTyping\s*\(/);
+  assert.match(socketJs, /onUserTyping\s*\(/);
+});
+
+test('Sprint 3 Gate 6 - Frontend UI Typing Indicator Renderer & XSS Safety', () => {
+  const uiJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/ui.js'), 'utf8');
+  assert.match(uiJs, /renderTypingIndicator\s*\(/);
+  assert.match(uiJs, /is typing\.\.\./);
+  assert.match(uiJs, /are typing\.\.\./);
+  assert.match(uiJs, /Several people are typing\.\.\./);
+});
+
+test('Sprint 3 Gate 7 - Frontend App Debounce Engine and Safety Timers', () => {
+  const appJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/app.js'), 'utf8');
+  assert.match(appJs, /DEBOUNCE_TYPING_MS\s*:\s*3000/);
+  assert.match(appJs, /FALLBACK_SAFETY_MS\s*:\s*4000/);
+  assert.match(appJs, /stopSelfTyping\s*\(/);
+  assert.match(appJs, /clearRemoteUserTyping\s*\(/);
+});
+
