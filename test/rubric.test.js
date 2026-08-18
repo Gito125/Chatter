@@ -233,3 +233,101 @@ test('Sprint 4 Gate 8 - Frontend Socket and App Orchestration for History and Sm
   assert.match(appJs, /scrollBottomBtn/);
 });
 
+test('Sprint 5 Gate 1 - Dual-Theme Token Completeness in styles.css', () => {
+  const css = fs.readFileSync(path.join(ROOT_DIR, 'public/css/styles.css'), 'utf8');
+  assert.match(css, /\[data-theme="dark"\]/);
+  assert.match(css, /\[data-theme="light"\]/);
+
+  const requiredTokens = [
+    '--bg-primary',
+    '--bg-secondary',
+    '--bg-tertiary',
+    '--text-primary',
+    '--text-secondary',
+    '--text-muted',
+    '--accent',
+    '--accent-hover',
+    '--accent-contrast',
+    '--border-color',
+    '--status-online',
+    '--bubble-self',
+    '--bubble-other',
+    '--error-color',
+    '--overlay-bg',
+    '--shadow-color',
+    '--input-bg',
+    '--badge-bg',
+  ];
+
+  requiredTokens.forEach((token) => {
+    assert.match(css, new RegExp(`${token}:`), `Token ${token} must be defined`);
+  });
+});
+
+test('Sprint 5 Gate 2 - HSL Teal Accent Validation', () => {
+  const css = fs.readFileSync(path.join(ROOT_DIR, 'public/css/styles.css'), 'utf8');
+  assert.match(css, /--accent:\s*hsl\(174,\s*80%,\s*50%\)/, 'Dark theme must use hsl(174, 80%, 50%)');
+  assert.match(css, /--accent:\s*hsl\(174,\s*80%,\s*35%\)/, 'Light theme must use hsl(174, 80%, 35%)');
+  assert.match(css, /--accent-contrast:\s*hsl\(222,\s*47%,\s*11%\)/, 'Dark contrast must match dark bg');
+  assert.match(css, /--accent-contrast:\s*hsl\(0,\s*0%,\s*100%\)/, 'Light contrast must be white');
+});
+
+test('Sprint 5 Gate 3 - Strict Zero Hardcoded Colors in Component Rules', () => {
+  const css = fs.readFileSync(path.join(ROOT_DIR, 'public/css/styles.css'), 'utf8');
+  const lines = css.split('\n');
+  let insideThemeBlock = false;
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith(':root') || trimmed.startsWith('[data-theme=')) {
+      insideThemeBlock = true;
+    }
+    if (insideThemeBlock && trimmed.endsWith('}')) {
+      insideThemeBlock = false;
+      return;
+    }
+
+    if (!insideThemeBlock) {
+      const match = trimmed.match(/#[0-9a-fA-F]{3,6}|rgba?\(|hsla?\(/);
+      assert.ok(!match, `Hardcoded color literal found at line ${index + 1}: ${trimmed}`);
+    }
+  });
+});
+
+test('Sprint 5 Gate 4 - Semantic HTML Header Toggle Button', () => {
+  const html = fs.readFileSync(path.join(ROOT_DIR, 'public/index.html'), 'utf8');
+  assert.match(html, /id="theme-toggle-btn"/);
+  assert.match(html, /id="theme-toggle-icon"/);
+  assert.match(html, /class="[^"]*theme-toggle-btn[^"]*"/);
+  assert.match(html, /aria-label="[^"]*theme[^"]*"/i);
+  assert.match(html, /type="button"/);
+});
+
+test('Sprint 5 Gate 5 - Theme Manager Module API on window.Chatter.theme', () => {
+  const themeJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/theme.js'), 'utf8');
+  assert.match(themeJs, /window\.Chatter\.theme\s*=/);
+  assert.match(themeJs, /getStoredTheme\s*\(/);
+  assert.match(themeJs, /saveStoredTheme\s*\(/);
+  assert.match(themeJs, /getSystemTheme\s*\(/);
+  assert.match(themeJs, /resolveInitialTheme\s*\(/);
+  assert.match(themeJs, /applyTheme\s*\(/);
+  assert.match(themeJs, /toggleTheme\s*\(/);
+  assert.match(themeJs, /bindEvents\s*\(/);
+  assert.match(themeJs, /init\s*\(/);
+});
+
+test('Sprint 5 Gate 6 - Defensive Storage & Error Handling', () => {
+  const themeJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/theme.js'), 'utf8');
+  assert.match(themeJs, /try\s*\{[\s\S]*localStorage\.getItem/);
+  assert.match(themeJs, /try\s*\{[\s\S]*localStorage\.setItem/);
+  assert.match(themeJs, /DARK:\s*'dark'/);
+  assert.match(themeJs, /LIGHT:\s*'light'/);
+});
+
+test('Sprint 5 Gate 7 - System Scheme Sync & FOUC Prevention', () => {
+  const themeJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/theme.js'), 'utf8');
+  assert.match(themeJs, /matchMedia\s*\(\s*['"]\(prefers-color-scheme:\s*dark\)['"]\s*\)/);
+  assert.match(themeJs, /window\.Chatter\.theme\.init\(\)/);
+});
+
+

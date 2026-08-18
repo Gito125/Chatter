@@ -46,6 +46,8 @@ window.Chatter.ui = {
       typingText: document.getElementById('typing-text'),
       scrollBottomBtn: document.getElementById('scroll-bottom-btn'),
       scrollBottomText: document.getElementById('scroll-bottom-text'),
+      themeToggleBtn: document.getElementById('theme-toggle-btn'),
+      themeToggleIcon: document.getElementById('theme-toggle-icon'),
     };
   },
 
