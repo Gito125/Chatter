@@ -1,4 +1,5 @@
-/.harness/
-
 # Node modules
 /node_modules/
+
+# IDE
+.vscode/
