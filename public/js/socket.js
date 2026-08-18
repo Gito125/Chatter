@@ -112,4 +112,26 @@ window.Chatter.socket = {
       this.socket.on('user:left', handler);
     }
   },
+
+  /**
+   * Notify server of current user's typing activity.
+   * @param {boolean} isTyping - Whether the user is currently typing
+   */
+  sendTyping(isTyping) {
+    if (!this.socket) {
+      return;
+    }
+    this.socket.emit('user:typing', { isTyping: Boolean(isTyping) });
+  },
+
+  /**
+   * Subscribe to peer typing status updates.
+   * @param {Function} handler - Typing event callback ({ username, isTyping })
+   */
+  onUserTyping(handler) {
+    if (!this.socket) this.init();
+    if (this.socket && typeof handler === 'function') {
+      this.socket.on('user:typing', handler);
+    }
+  },
 };

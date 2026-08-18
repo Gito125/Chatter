@@ -92,6 +92,26 @@ const registerSocketHandlers = (io) => {
       }
     });
 
+    // Handle typing status updates (USER_TYPING)
+    socket.on(EVENTS.USER_TYPING, (payload) => {
+      // Ensure sender is registered in the store
+      const user = store.getUser(socket.id);
+      if (!user) {
+        return;
+      }
+
+      // Validate payload
+      if (!payload || typeof payload.isTyping !== 'boolean') {
+        return;
+      }
+
+      // Broadcast typing state to all clients EXCEPT the sender
+      socket.broadcast.emit(EVENTS.USER_TYPING_UPDATE, {
+        username: user.username,
+        isTyping: payload.isTyping,
+      });
+    });
+
     // Handle client disconnect
     socket.on('disconnect', () => {
       const removedUser = store.removeUser(socket.id);

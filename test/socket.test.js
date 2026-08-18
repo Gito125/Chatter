@@ -238,3 +238,89 @@ test('Adversarial Scenario - Disconnect before join emits no phantom user:left',
   assert.equal(phantomReceived, false);
   listener.disconnect();
 });
+
+test('Socket Flow - Real-Time Typing Indicator Broadcast and Sender Exclusion', async () => {
+  const client1 = await connectClient();
+  const client2 = await connectClient();
+
+  await new Promise((resolve) => client1.emit(EVENTS.USER_JOIN, { username: 'Alice' }, resolve));
+  await new Promise((resolve) => client2.emit(EVENTS.USER_JOIN, { username: 'Bob' }, resolve));
+
+  // Client 2 listens for typing events
+  const c2TypingPromise = new Promise((resolve) => {
+    client2.on(EVENTS.USER_TYPING_UPDATE, (data) => resolve(data));
+  });
+
+  // Client 1 (sender) should NOT receive its own typing broadcast
+  let client1ReceivedSelfTyping = false;
+  client1.on(EVENTS.USER_TYPING_UPDATE, () => {
+    client1ReceivedSelfTyping = true;
+  });
+
+  // Alice starts typing
+  client1.emit(EVENTS.USER_TYPING, { isTyping: true });
+
+  const typingData = await c2TypingPromise;
+  assert.equal(typingData.username, 'Alice');
+  assert.equal(typingData.isTyping, true);
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  assert.equal(client1ReceivedSelfTyping, false, 'Sender must not receive its own typing broadcast');
+
+  // Alice stops typing
+  const c2StoppedTypingPromise = new Promise((resolve) => {
+    client2.on(EVENTS.USER_TYPING_UPDATE, (data) => resolve(data));
+  });
+
+  client1.emit(EVENTS.USER_TYPING, { isTyping: false });
+  const stoppedData = await c2StoppedTypingPromise;
+  assert.equal(stoppedData.username, 'Alice');
+  assert.equal(stoppedData.isTyping, false);
+
+  client1.disconnect();
+  client2.disconnect();
+});
+
+test('Adversarial Scenario - Unregistered socket typing attempt is safely ignored', async () => {
+  const listener = await connectClient();
+  await new Promise((resolve) => listener.emit(EVENTS.USER_JOIN, { username: 'Listener' }, resolve));
+
+  let typingReceived = false;
+  listener.on(EVENTS.USER_TYPING_UPDATE, () => {
+    typingReceived = true;
+  });
+
+  const unregistered = await connectClient();
+  unregistered.emit(EVENTS.USER_TYPING, { isTyping: true });
+
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  assert.equal(typingReceived, false, 'Unregistered socket typing event must be ignored');
+
+  unregistered.disconnect();
+  listener.disconnect();
+});
+
+test('Adversarial Scenario - Invalid typing payload is safely ignored', async () => {
+  const listener = await connectClient();
+  const typer = await connectClient();
+
+  await new Promise((resolve) => listener.emit(EVENTS.USER_JOIN, { username: 'Listener' }, resolve));
+  await new Promise((resolve) => typer.emit(EVENTS.USER_JOIN, { username: 'Typer' }, resolve));
+
+  let typingReceived = false;
+  listener.on(EVENTS.USER_TYPING_UPDATE, () => {
+    typingReceived = true;
+  });
+
+  // Emit invalid payloads
+  typer.emit(EVENTS.USER_TYPING, null);
+  typer.emit(EVENTS.USER_TYPING, { isTyping: 'yes' });
+  typer.emit(EVENTS.USER_TYPING, { isTyping: 123 });
+
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  assert.equal(typingReceived, false, 'Invalid typing payload must be ignored');
+
+  typer.disconnect();
+  listener.disconnect();
+});
+

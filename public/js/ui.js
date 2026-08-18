@@ -34,6 +34,8 @@ window.Chatter.ui = {
       userCountText: document.getElementById('user-count-text'),
       sidebarUserCount: document.getElementById('sidebar-user-count'),
       userCountBadge: document.getElementById('user-count-badge'),
+      typingIndicator: document.getElementById('typing-indicator'),
+      typingText: document.getElementById('typing-text'),
     };
   },
 
@@ -263,5 +265,37 @@ window.Chatter.ui = {
     if (this.elements.usernameInput) {
       this.elements.usernameInput.focus();
     }
+  },
+
+  /**
+   * Render real-time typing indicator banner with pluralized labels.
+   * Employs strict textContent DOM insertion for complete XSS safety.
+   * @param {Array<string>} typingUsers - List of usernames currently typing
+   */
+  renderTypingIndicator(typingUsers) {
+    if (!this.elements.typingIndicator) return;
+
+    if (!Array.isArray(typingUsers) || typingUsers.length === 0) {
+      this.elements.typingIndicator.classList.add('hidden');
+      if (this.elements.typingText) {
+        this.elements.typingText.textContent = '';
+      }
+      return;
+    }
+
+    let text = '';
+    if (typingUsers.length === 1) {
+      text = `${typingUsers[0]} is typing...`;
+    } else if (typingUsers.length === 2) {
+      text = `${typingUsers[0]} and ${typingUsers[1]} are typing...`;
+    } else {
+      text = 'Several people are typing...';
+    }
+
+    if (this.elements.typingText) {
+      this.elements.typingText.textContent = text;
+    }
+
+    this.elements.typingIndicator.classList.remove('hidden');
   },
 };
