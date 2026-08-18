@@ -13,7 +13,10 @@
     <div class="modal-card">
       <div class="modal-header">
         <div class="brand-badge">
-          <span class="brand-icon">💬</span>
+          <span class="brand-icon" aria-hidden="true">
+            <!-- Lucide message-square SVG -->
+            <svg class="lucide lucide-message-square" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </span>
         </div>
         <h1 id="modal-title" class="modal-title">Welcome to Chatter</h1>
         <p class="modal-subtitle">Enter a display name to join the conversation.</p>
@@ -56,7 +59,10 @@
           aria-controls="users-sidebar"
           title="Open online users"
         >
-          <span id="sidebar-toggle-icon" class="sidebar-toggle-icon" aria-hidden="true">☰</span>
+          <span id="sidebar-toggle-icon" class="sidebar-toggle-icon" aria-hidden="true">
+            <!-- Lucide menu SVG -->
+            <svg class="lucide lucide-menu" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </span>
         </button>
         <div class="brand-title">
           <span class="brand-logo-text">Chatter</span>
@@ -66,7 +72,11 @@
       </div>
       <div class="header-right">
         <div id="user-count-badge" class="user-count-badge" aria-live="polite">
-          <span class="status-dot online"></span>
+          <span class="status-dot online" aria-hidden="true"></span>
+          <span class="user-count-icon" aria-hidden="true">
+            <!-- Lucide users SVG -->
+            <svg class="lucide lucide-users" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
           <span id="user-count-text">0 online</span>
         </div>
         <button
@@ -76,7 +86,10 @@
           aria-label="Switch to light theme"
           title="Switch to light theme"
         >
-          <span id="theme-toggle-icon" class="theme-icon" aria-hidden="true">🌙</span>
+          <span id="theme-toggle-icon" class="theme-icon" aria-hidden="true">
+            <!-- Lucide sun SVG (initial dark mode) -->
+            <svg class="lucide lucide-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          </span>
         </button>
       </div>
     </header>
@@ -100,7 +113,10 @@
             aria-label="Close online users roster"
             title="Close online users"
           >
-            <span aria-hidden="true">&times;</span>
+            <span aria-hidden="true">
+              <!-- Lucide x SVG -->
+              <svg class="lucide lucide-x" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </span>
           </button>
         </div>
         <div class="sidebar-content">
@@ -134,7 +150,11 @@
           type="button"
           aria-label="Scroll to newest messages"
         >
-          <span id="scroll-bottom-text" class="scroll-bottom-text">New messages below &darr;</span>
+          <span class="btn-icon-svg" aria-hidden="true">
+            <!-- Lucide arrow-down SVG -->
+            <svg class="lucide lucide-arrow-down" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+          </span>
+          <span id="scroll-bottom-text" class="scroll-bottom-text">New messages below</span>
         </button>
 
         <!-- Typing Activity Indicator Banner -->
@@ -149,8 +169,24 @@
           </div>
         </div>
 
-        <!-- Chat Input Bar -->
+        <!-- Chat Input Footer with Emoji Quick-Picker & Character Counter -->
         <footer class="chat-footer">
+          <!-- Emoji Quick-Picker Popover Dialog -->
+          <div
+            id="emoji-picker"
+            class="emoji-picker hidden"
+            role="dialog"
+            aria-label="Emoji picker"
+            aria-hidden="true"
+          >
+            <div class="emoji-picker-header">
+              <span class="emoji-picker-title">Quick Emojis</span>
+            </div>
+            <div id="emoji-grid" class="emoji-grid" role="grid">
+              <!-- Dynamically populated by emoji.js -->
+            </div>
+          </div>
+
           <form id="message-form" class="chat-input-form" novalidate>
             <div class="input-wrapper">
               <label for="message-input" class="sr-only">Message</label>
@@ -163,9 +199,32 @@
                 autocomplete="off"
                 required
               >
+
+              <button
+                id="emoji-toggle-btn"
+                class="btn-icon emoji-toggle-btn"
+                type="button"
+                aria-label="Open emoji picker"
+                aria-expanded="false"
+                aria-controls="emoji-picker"
+                title="Choose emoji"
+              >
+                <span id="emoji-toggle-icon" class="btn-icon-svg" aria-hidden="true">
+                  <!-- Lucide smile SVG -->
+                  <svg class="lucide lucide-smile" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+                </span>
+              </button>
+
+              <!-- Live Character Counter -->
+              <span id="char-counter" class="char-counter" aria-live="polite" aria-atomic="true">0/500</span>
             </div>
-            <button type="submit" id="send-btn" class="btn btn-send" aria-label="Send message">
-              <span>Send</span>
+
+            <button type="submit" id="send-btn" class="btn btn-send" aria-label="Send message" title="Send message">
+              <span class="btn-icon-svg" aria-hidden="true">
+                <!-- Lucide send SVG -->
+                <svg class="lucide lucide-send" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+              </span>
+              <span class="send-btn-text">Send</span>
             </button>
           </form>
         </footer>

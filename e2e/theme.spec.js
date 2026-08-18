@@ -15,8 +15,8 @@ test.describe("Dual-Theme Engine & HSL Design System Tokens", () => {
     await expect(toggleBtn).toBeVisible();
     await expect(toggleBtn).toHaveAttribute("aria-label", "Switch to light theme");
 
-    const toggleIcon = page.locator("#theme-toggle-icon");
-    await expect(toggleIcon).toHaveText("🌙");
+    const sunSvg = page.locator("#theme-toggle-icon svg.lucide-sun");
+    await expect(sunSvg).toBeVisible();
 
     // Verify computed dark theme background color on body
     const bodyBg = await page.evaluate(() => {
@@ -29,23 +29,22 @@ test.describe("Dual-Theme Engine & HSL Design System Tokens", () => {
     await page.goto("/", { timeout: 30000 });
 
     const toggleBtn = page.locator("#theme-toggle-btn");
-    const toggleIcon = page.locator("#theme-toggle-icon");
     const htmlElement = page.locator("html");
 
-    // 1. Initial State: Dark Mode
+    // 1. Initial State: Dark Mode (displays sun icon to switch to light)
     await expect(htmlElement).toHaveAttribute("data-theme", "dark");
-    await expect(toggleIcon).toHaveText("🌙");
+    await expect(page.locator("#theme-toggle-icon svg.lucide-sun")).toBeVisible();
 
     const darkHeaderBg = await page.evaluate(() => {
       const header = document.querySelector(".chat-header");
       return header ? window.getComputedStyle(header).backgroundColor : "";
     });
 
-    // 2. Click Toggle -> Switch to Light Mode
+    // 2. Click Toggle -> Switch to Light Mode (displays moon icon to switch to dark)
     await toggleBtn.click();
 
     await expect(htmlElement).toHaveAttribute("data-theme", "light");
-    await expect(toggleIcon).toHaveText("☀️");
+    await expect(page.locator("#theme-toggle-icon svg.lucide-moon")).toBeVisible();
     await expect(toggleBtn).toHaveAttribute("aria-label", "Switch to dark theme");
 
     const lightHeaderBg = await page.evaluate(() => {
@@ -64,7 +63,7 @@ test.describe("Dual-Theme Engine & HSL Design System Tokens", () => {
     await toggleBtn.click();
 
     await expect(htmlElement).toHaveAttribute("data-theme", "dark");
-    await expect(toggleIcon).toHaveText("🌙");
+    await expect(page.locator("#theme-toggle-icon svg.lucide-sun")).toBeVisible();
     await expect(toggleBtn).toHaveAttribute("aria-label", "Switch to light theme");
 
     const returnedDarkHeaderBg = await page.evaluate(() => {
@@ -92,7 +91,7 @@ test.describe("Dual-Theme Engine & HSL Design System Tokens", () => {
 
     // Ensure page loaded with light theme preserved
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-    await expect(page.locator("#theme-toggle-icon")).toHaveText("☀️");
+    await expect(page.locator("#theme-toggle-icon svg.lucide-moon")).toBeVisible();
     await expect(page.locator("#theme-toggle-btn")).toHaveAttribute("aria-label", "Switch to dark theme");
   });
 
@@ -105,7 +104,7 @@ test.describe("Dual-Theme Engine & HSL Design System Tokens", () => {
     await page.goto("/", { timeout: 30000 });
 
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-    await expect(page.locator("#theme-toggle-icon")).toHaveText("☀️");
+    await expect(page.locator("#theme-toggle-icon svg.lucide-moon")).toBeVisible();
   });
 
   test("OS prefers-color-scheme syncs when no manual preference is stored", async ({ page }) => {
@@ -115,14 +114,14 @@ test.describe("Dual-Theme Engine & HSL Design System Tokens", () => {
 
     // Should detect light mode from system
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-    await expect(page.locator("#theme-toggle-icon")).toHaveText("☀️");
+    await expect(page.locator("#theme-toggle-icon svg.lucide-moon")).toBeVisible();
 
     // Switch OS emulation to dark mode
     await page.emulateMedia({ colorScheme: "dark" });
 
     // Should dynamically switch to dark theme
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(page.locator("#theme-toggle-icon")).toHaveText("🌙");
+    await expect(page.locator("#theme-toggle-icon svg.lucide-sun")).toBeVisible();
   });
 
   test("Explicit user preference is not overwritten by OS theme change", async ({ page }) => {
@@ -142,7 +141,7 @@ test.describe("Dual-Theme Engine & HSL Design System Tokens", () => {
 
     // Explicit manual light choice should remain active
     await expect(htmlElement).toHaveAttribute("data-theme", "light");
-    await expect(page.locator("#theme-toggle-icon")).toHaveText("☀️");
+    await expect(page.locator("#theme-toggle-icon svg.lucide-moon")).toBeVisible();
   });
 
   test("Defensive handling: corrupted localStorage values fall back safely", async ({ page }) => {
@@ -174,13 +173,13 @@ test.describe("Dual-Theme Engine & HSL Design System Tokens", () => {
     await page.keyboard.press("Enter");
 
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-    await expect(page.locator("#theme-toggle-icon")).toHaveText("☀️");
+    await expect(page.locator("#theme-toggle-icon svg.lucide-moon")).toBeVisible();
 
     // Press Enter again to return to dark
     await page.keyboard.press("Enter");
 
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(page.locator("#theme-toggle-icon")).toHaveText("🌙");
+    await expect(page.locator("#theme-toggle-icon svg.lucide-sun")).toBeVisible();
   });
 
   test("Theme toggle preserves layout geometry without causing layout shift", async ({ page }) => {
