@@ -382,4 +382,60 @@ test('Socket Flow - Message History Capped at 50 on Join', async () => {
   client.disconnect();
 });
 
+test('Adversarial Scenario - Duplicate username is rejected case-insensitively', async () => {
+  const client1 = await connectClient();
+  const client2 = await connectClient();
+
+  const ack1 = await new Promise((resolve) => {
+    client1.emit(EVENTS.USER_JOIN, { username: 'Alice' }, resolve);
+  });
+  assert.ok(ack1.success);
+
+  // Exact duplicate
+  const ack2 = await new Promise((resolve) => {
+    client2.emit(EVENTS.USER_JOIN, { username: 'Alice' }, resolve);
+  });
+  assert.ok(ack2.error);
+  assert.match(ack2.error, /Username is already taken/i);
+
+  // Case-insensitive duplicate
+  const ack3 = await new Promise((resolve) => {
+    client2.emit(EVENTS.USER_JOIN, { username: 'alice' }, resolve);
+  });
+  assert.ok(ack3.error);
+  assert.match(ack3.error, /Username is already taken/i);
+
+  // Distinct username succeeds
+  const ack4 = await new Promise((resolve) => {
+    client2.emit(EVENTS.USER_JOIN, { username: 'Bob' }, resolve);
+  });
+  assert.ok(ack4.success);
+
+  client1.disconnect();
+  client2.disconnect();
+});
+
+test('Socket Flow - Disconnect frees username for reconnecting client', async () => {
+  const client1 = await connectClient();
+
+  const ack1 = await new Promise((resolve) => {
+    client1.emit(EVENTS.USER_JOIN, { username: 'Alice' }, resolve);
+  });
+  assert.ok(ack1.success);
+
+  // Disconnect client 1
+  client1.disconnect();
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  // Client 2 connects and claims 'Alice'
+  const client2 = await connectClient();
+  const ack2 = await new Promise((resolve) => {
+    client2.emit(EVENTS.USER_JOIN, { username: 'Alice' }, resolve);
+  });
+  assert.ok(ack2.success);
+  assert.equal(ack2.user.username, 'Alice');
+
+  client2.disconnect();
+});
+
 

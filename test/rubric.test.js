@@ -392,5 +392,62 @@ test('Sprint 6 Gate 5 - App Module Mobile Event Wiring', () => {
   assert.match(appJs, /resize.*innerWidth|window\.innerWidth >= 768/, 'Must bind window resize listener to auto-close drawer on desktop');
 });
 
+test('Sprint 7 Gate 1 - Store Duplicate Check Methods & Architecture', () => {
+  const store = require('../src/store/memory');
+  assert.equal(typeof store.isUsernameTaken, 'function', 'isUsernameTaken must be exported');
+  assert.equal(typeof store.getUserByUsername, 'function', 'getUserByUsername must be exported');
+  store.clearStore();
+  store.addUser({ id: 's1', username: 'Alice' });
+  assert.equal(store.isUsernameTaken('alice'), true, 'Must detect duplicate case-insensitively');
+  assert.equal(store.isUsernameTaken('Bob'), false, 'Must return false for available username');
+  assert.equal(store.isUsernameTaken('Alice', 's1'), false, 'Must exclude given socket ID');
+});
+
+test('Sprint 7 Gate 2 - Server Socket Handlers Duplicate Validation', () => {
+  const handlersCode = fs.readFileSync(path.join(ROOT_DIR, 'src/socket/handlers.js'), 'utf8');
+  assert.match(handlersCode, /store\.isUsernameTaken/, 'src/socket/handlers.js must validate username uniqueness with store.isUsernameTaken');
+});
+
+test('Sprint 7 Gate 3 - HTML Connection Status Banner & ARIA Attributes', () => {
+  const html = fs.readFileSync(path.join(ROOT_DIR, 'public/index.html'), 'utf8');
+  assert.match(html, /id="connection-status"/, 'Must contain #connection-status');
+  assert.match(html, /id="connection-status-dot"/, 'Must contain #connection-status-dot');
+  assert.match(html, /id="connection-status-text"/, 'Must contain #connection-status-text');
+  assert.match(html, /role="status"/, 'Must contain role="status"');
+  assert.match(html, /aria-live="polite"/, 'Must contain aria-live="polite"');
+});
+
+test('Sprint 7 Gate 4 - CSS Status Tokens & Zero Hardcoded Colors', () => {
+  const css = fs.readFileSync(path.join(ROOT_DIR, 'public/css/styles.css'), 'utf8');
+  assert.match(css, /--status-warning:/, 'Missing --status-warning token');
+  assert.match(css, /--status-offline:/, 'Missing --status-offline token');
+  assert.match(css, /\.connection-status/, 'Missing .connection-status styles');
+  assert.match(css, /\.chat-input:disabled|#message-input:disabled/, 'Missing disabled input styles');
+});
+
+test('Sprint 7 Gate 5 - Client Socket Module Lifecycle Methods', () => {
+  const socketJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/socket.js'), 'utf8');
+  assert.match(socketJs, /onConnect\s*\(/, 'Must export onConnect');
+  assert.match(socketJs, /onDisconnect\s*\(/, 'Must export onDisconnect');
+  assert.match(socketJs, /onConnectError\s*\(/, 'Must export onConnectError');
+  assert.match(socketJs, /onReconnectAttempt\s*\(/, 'Must export onReconnectAttempt');
+  assert.match(socketJs, /onReconnect\s*\(/, 'Must export onReconnect');
+  assert.match(socketJs, /rejoin\s*\(/, 'Must export rejoin');
+});
+
+test('Sprint 7 Gate 6 - UI Module Telemetry & Input Lock Helpers', () => {
+  const uiJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/ui.js'), 'utf8');
+  assert.match(uiJs, /renderConnectionStatus\s*\(/, 'Must export renderConnectionStatus');
+  assert.match(uiJs, /setChatInputDisabled\s*\(/, 'Must export setChatInputDisabled');
+  assert.match(uiJs, /connectionStatus/, 'Must cache connectionStatus elements');
+});
+
+test('Sprint 7 Gate 7 - App Module Resilience Coordination', () => {
+  const appJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/app.js'), 'utf8');
+  assert.match(appJs, /setChatInputDisabled/, 'Must invoke setChatInputDisabled');
+  assert.match(appJs, /renderConnectionStatus/, 'Must invoke renderConnectionStatus');
+  assert.match(appJs, /rejoin/, 'Must invoke socket.rejoin on reconnection');
+});
+
 
 

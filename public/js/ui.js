@@ -22,6 +22,9 @@ window.Chatter.ui = {
   // Tracking state for consecutive message grouping
   lastMessageState: null,
 
+  // Timer ID for connection status auto-dismissal
+  statusDismissTimeoutId: null,
+
   /**
    * Cache DOM elements for efficient access.
    */
@@ -52,6 +55,9 @@ window.Chatter.ui = {
       sidebarToggleIcon: document.getElementById('sidebar-toggle-icon'),
       sidebarCloseBtn: document.getElementById('sidebar-close-btn'),
       sidebarBackdrop: document.getElementById('sidebar-backdrop'),
+      connectionStatus: document.getElementById('connection-status'),
+      connectionStatusText: document.getElementById('connection-status-text'),
+      connectionStatusDot: document.getElementById('connection-status-dot'),
     };
   },
 
@@ -492,5 +498,86 @@ window.Chatter.ui = {
     }
 
     this.elements.typingIndicator.classList.remove('hidden');
+  },
+
+  /**
+   * Render real-time connection status telemetry banner.
+   * Employs strict textContent DOM insertion for complete XSS safety.
+   * @param {string} status - Status key: 'connected' | 'online' | 'reconnecting' | 'disconnected' | 'error' | 'hidden'
+   * @param {Object} [details] - Additional contextual details (e.g. attempt number, custom message)
+   */
+  renderConnectionStatus(status, details = {}) {
+    if (this.statusDismissTimeoutId) {
+      clearTimeout(this.statusDismissTimeoutId);
+      this.statusDismissTimeoutId = null;
+    }
+
+    const { connectionStatus, connectionStatusText, connectionStatusDot } = this.elements;
+    if (!connectionStatus) return;
+
+    if (status === 'hidden') {
+      connectionStatus.classList.add('hidden');
+      return;
+    }
+
+    connectionStatus.classList.remove('hidden', 'warning', 'error', 'success', 'reconnecting', 'disconnected', 'connected');
+
+    if (connectionStatusDot) {
+      connectionStatusDot.classList.remove('online', 'warning', 'offline');
+    }
+
+    if (status === 'connected' || status === 'online') {
+      connectionStatus.classList.add('success', 'connected');
+      if (connectionStatusDot) {
+        connectionStatusDot.classList.add('online');
+      }
+      if (connectionStatusText) {
+        connectionStatusText.textContent = (details && details.message) || 'Back online';
+      }
+
+      // Auto-dismiss the success banner after 2500ms
+      this.statusDismissTimeoutId = setTimeout(() => {
+        this.renderConnectionStatus('hidden');
+      }, 2500);
+    } else if (status === 'reconnecting') {
+      connectionStatus.classList.add('warning', 'reconnecting');
+      if (connectionStatusDot) {
+        connectionStatusDot.classList.add('warning');
+      }
+      const attempt = details && typeof details.attempt === 'number' ? details.attempt : 1;
+      if (connectionStatusText) {
+        connectionStatusText.textContent = (details && details.message) || `Reconnecting to server... (attempt ${attempt})`;
+      }
+    } else if (status === 'disconnected' || status === 'error') {
+      connectionStatus.classList.add('error', 'disconnected');
+      if (connectionStatusDot) {
+        connectionStatusDot.classList.add('offline');
+      }
+      if (connectionStatusText) {
+        connectionStatusText.textContent = (details && details.message) || 'Connection lost. Reconnecting...';
+      }
+    }
+  },
+
+  /**
+   * Toggle disabled state of message input and send button based on socket connectivity.
+   * @param {boolean} disabled - Whether inputs should be disabled
+   * @param {string} [placeholderMessage] - Custom input placeholder text
+   */
+  setChatInputDisabled(disabled, placeholderMessage) {
+    const { messageInput, sendBtn } = this.elements;
+    const isDisabled = Boolean(disabled);
+
+    if (messageInput) {
+      messageInput.disabled = isDisabled;
+      messageInput.placeholder = placeholderMessage || (isDisabled ? 'Disconnected from server...' : 'Type a message...');
+      if (isDisabled) {
+        messageInput.blur();
+      }
+    }
+
+    if (sendBtn) {
+      sendBtn.disabled = isDisabled;
+    }
   },
 };

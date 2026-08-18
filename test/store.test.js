@@ -81,3 +81,36 @@ test('Memory Store - Message Validation', (t) => {
   assert.throws(() => store.saveMessage({ username: 'Alice', text: '   ' }), /Message text must be between 1 and 500 characters/);
   assert.throws(() => store.saveMessage({ username: 'Alice', text: 'a'.repeat(501) }), /Message text must be between 1 and 500 characters/);
 });
+
+test('Memory Store - Duplicate Username Detection and Uniqueness', (t) => {
+  store.clearStore();
+
+  store.addUser({ id: 's1', username: 'Alice' });
+
+  // Case-insensitive detection
+  assert.equal(store.isUsernameTaken('alice'), true);
+  assert.equal(store.isUsernameTaken('ALICE'), true);
+  assert.equal(store.isUsernameTaken('  Alice  '), true);
+  assert.equal(store.isUsernameTaken('Bob'), false);
+
+  // Exclude current socket ID
+  assert.equal(store.isUsernameTaken('Alice', 's1'), false);
+  assert.equal(store.isUsernameTaken('alice', 's1'), false);
+  assert.equal(store.isUsernameTaken('Alice', 's2'), true);
+
+  // getUserByUsername lookup
+  const user = store.getUserByUsername('alice');
+  assert.ok(user);
+  assert.equal(user.id, 's1');
+  assert.equal(user.username, 'Alice');
+  assert.equal(store.getUserByUsername('nonexistent'), null);
+
+  // addUser throws if duplicate username
+  assert.throws(() => store.addUser({ id: 's2', username: 'alice' }), /Username is already taken/);
+  assert.throws(() => store.addUser({ id: 's2', username: 'Alice' }), /Username is already taken/);
+
+  // Removing user frees the username
+  store.removeUser('s1');
+  assert.equal(store.isUsernameTaken('Alice'), false);
+  assert.doesNotThrow(() => store.addUser({ id: 's2', username: 'Alice' }));
+});

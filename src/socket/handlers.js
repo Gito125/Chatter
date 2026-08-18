@@ -34,6 +34,10 @@ const registerSocketHandlers = (io) => {
         return ack({ error: 'Username must be between 1 and 25 characters' });
       }
 
+      if (store.isUsernameTaken(trimmedUsername, socket.id)) {
+        return ack({ error: 'Username is already taken. Please choose another.' });
+      }
+
       try {
         const user = store.addUser({
           id: socket.id,
