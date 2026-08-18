@@ -1,33 +1,12 @@
 # Chatter
 
-![Chatter Preview](public/assets/og-image.png)
-
 Chatter is a lightweight, responsive real-time web chat application engineered with Node.js, Express, Socket.IO, and Vanilla HTML/CSS/JavaScript. It demonstrates how to build resilient, bidirectional communication architectures with sub-50ms message propagation, live presence tracking, debounced typing feedback, and adaptive dual-theming—completely free of client-side bundlers, transpilers, or frontend framework overhead.
 
 ---
 
 ## Demo & Screenshots
 
-<!--
-  Add screenshots or an animated GIF of Chatter in action here:
-  - Desktop View (Side-by-side roster, chat stream, emoji picker, dual theme)
-  - Mobile View (Off-canvas drawer navigation, responsive input bar)
--->
-```
-+-------------------------------------------------------------------------+
-| [=] Chatter #general                    (•) 3 online   [ ☼ Theme ]      |
-+-------------------+-----------------------------------------------------+
-| Online Users (3)  |  Alice  10:42 AM                                    |
-| • Alice (You)     |  Hey team, the real-time presence engine is live!   |
-| • Bob             |                                                     |
-| • Charlie         |  Bob  10:43 AM                                      |
-|                   |  Awesome! Testing the debounced typing indicators.  |
-|                   |                                                     |
-|                   |  Charlie is typing...                               |
-+-------------------+-----------------------------------------------------+
-| [☺] Type a message...                                      [ Send ➔ ]   |
-+-------------------------------------------------------------------------+
-```
+![Chatter Preview](public/assets/og-image.png)
 
 ---
 
@@ -74,7 +53,7 @@ Clone the repository and install project dependencies using `pnpm`:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/chatter.git
+git clone https://github.com/Gito125/chatter.git
 cd chatter
 
 # Install dependencies (strictly use pnpm)
