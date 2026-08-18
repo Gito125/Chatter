@@ -13,6 +13,7 @@ module.exports = defineConfig({
   reporter: 'list',
   use: {
     baseURL: 'http://localhost:3000',
+    colorScheme: 'dark',
     trace: 'on-first-retry',
   },
   webServer: {

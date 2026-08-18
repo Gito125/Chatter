@@ -30,9 +30,9 @@ This document outlines the phased development plan for the Chatter project.
 > **Acceptance:** Full chat experience with presence and typing
 
 ### Phase 3: Polish & Theming
-- [ ] Light theme design
-- [ ] Theme toggle with system detection
-- [ ] Theme persistence (localStorage)
+- [x] Light theme design
+- [x] Theme toggle with system detection
+- [x] Theme persistence (localStorage)
 - [ ] Responsive layout — mobile hamburger menu
 - [ ] Basic emoji support
 - [ ] Lucide icons integration
