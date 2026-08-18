@@ -1,6 +1,10 @@
 const { test, expect } = require('@playwright/test');
 
 test.describe('Real-Time Typing Indicators & Debounced Activity Engine', () => {
+  test.beforeEach(async ({ request }) => {
+    await request.post('/api/test/reset');
+  });
+
   test('Typing in input displays typing banner on peer screen and hides on sender screen', async ({ browser }) => {
     // Context 1: Alice
     const context1 = await browser.newContext();

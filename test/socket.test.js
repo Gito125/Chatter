@@ -324,3 +324,62 @@ test('Adversarial Scenario - Invalid typing payload is safely ignored', async ()
   listener.disconnect();
 });
 
+test('Socket Flow - User Join Receives Recent Message History Snapshot', async () => {
+  const client1 = await connectClient();
+
+  // Client 1 joins and sends 3 messages
+  await new Promise((resolve) => client1.emit(EVENTS.USER_JOIN, { username: 'Alice' }, resolve));
+  await new Promise((resolve) => client1.emit(EVENTS.MESSAGE_SEND, { text: 'Message 1' }, resolve));
+  await new Promise((resolve) => client1.emit(EVENTS.MESSAGE_SEND, { text: 'Message 2' }, resolve));
+  await new Promise((resolve) => client1.emit(EVENTS.MESSAGE_SEND, { text: 'Message 3' }, resolve));
+
+  // Client 1 should NOT receive message:history when Client 2 joins
+  let client1ReceivedHistory = false;
+  client1.on(EVENTS.MESSAGE_HISTORY, () => {
+    client1ReceivedHistory = true;
+  });
+
+  // Client 2 connects and joins
+  const client2 = await connectClient();
+  const c2HistoryPromise = new Promise((resolve) => {
+    client2.once(EVENTS.MESSAGE_HISTORY, (data) => resolve(data));
+  });
+
+  await new Promise((resolve) => client2.emit(EVENTS.USER_JOIN, { username: 'Bob' }, resolve));
+
+  const historyData = await c2HistoryPromise;
+  assert.ok(Array.isArray(historyData.messages), 'History payload contains messages array');
+  assert.equal(historyData.messages.length, 3);
+  assert.equal(historyData.messages[0].text, 'Message 1');
+  assert.equal(historyData.messages[1].text, 'Message 2');
+  assert.equal(historyData.messages[2].text, 'Message 3');
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  assert.equal(client1ReceivedHistory, false, 'Existing client must not receive peer history event');
+
+  client1.disconnect();
+  client2.disconnect();
+});
+
+test('Socket Flow - Message History Capped at 50 on Join', async () => {
+  // Prepopulate store with 60 messages
+  for (let i = 1; i <= 60; i++) {
+    store.saveMessage({ username: 'Alice', text: `Buffered message ${i}` });
+  }
+
+  const client = await connectClient();
+  const historyPromise = new Promise((resolve) => {
+    client.once(EVENTS.MESSAGE_HISTORY, (data) => resolve(data));
+  });
+
+  await new Promise((resolve) => client.emit(EVENTS.USER_JOIN, { username: 'Bob' }, resolve));
+
+  const historyData = await historyPromise;
+  assert.equal(historyData.messages.length, 50);
+  assert.equal(historyData.messages[0].text, 'Buffered message 11');
+  assert.equal(historyData.messages[49].text, 'Buffered message 60');
+
+  client.disconnect();
+});
+
+

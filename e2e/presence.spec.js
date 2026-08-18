@@ -1,6 +1,10 @@
 const { test, expect } = require('@playwright/test');
 
 test.describe('Real-Time Presence and Live Online Users Roster', () => {
+  test.beforeEach(async ({ request }) => {
+    await request.post('/api/test/reset');
+  });
+
   test('Single client joins and appears in roster as You', async ({ page }) => {
     await page.goto('/', { timeout: 30000 });
 

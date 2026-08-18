@@ -92,6 +92,17 @@ window.Chatter.socket = {
   },
 
   /**
+   * Subscribe to message history buffer on connection.
+   * @param {Function} handler - History event handler ({ messages: Message[] })
+   */
+  onMessageHistory(handler) {
+    if (!this.socket) this.init();
+    if (this.socket && typeof handler === 'function') {
+      this.socket.on('message:history', handler);
+    }
+  },
+
+  /**
    * Subscribe to new user joined announcements.
    * @param {Function} handler - Join event handler
    */

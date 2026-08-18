@@ -45,6 +45,11 @@ const registerSocketHandlers = (io) => {
           users: store.getAllUsers(),
         });
 
+        // Send recent message history buffer directly to the joining client
+        socket.emit(EVENTS.MESSAGE_HISTORY, {
+          messages: store.getRecentMessages(50),
+        });
+
         // Broadcast to all clients that a new user has joined with updated roster
         io.emit(EVENTS.USER_JOINED, {
           username: user.username,
