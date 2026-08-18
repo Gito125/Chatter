@@ -14,6 +14,7 @@ const http = require('http');
 const express = require('express');
 const { Server } = require('socket.io');
 const { registerSocketHandlers } = require('./socket/handlers');
+const { store } = require('./store/memory');
 
 const app = express();
 const server = http.createServer(app);
@@ -22,6 +23,14 @@ const io = new Server(server);
 // Serve static assets from the public directory
 const publicPath = path.join(__dirname, '../public');
 app.use(express.static(publicPath));
+
+// Test suite store reset endpoint for end-to-end test isolation
+if (process.env.NODE_ENV !== 'production') {
+  app.post('/api/test/reset', (req, res) => {
+    store.clearStore();
+    res.json({ success: true });
+  });
+}
 
 // Attach real-time event handlers
 registerSocketHandlers(io);

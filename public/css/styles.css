@@ -430,6 +430,7 @@ body {
 
 /* Chat Area */
 .chat-area {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -484,6 +485,23 @@ body {
   align-items: flex-start;
 }
 
+/* Consecutive message grouping */
+.message-item.grouped {
+  margin-top: -0.5rem;
+}
+
+.message-item.grouped .message-meta {
+  display: none;
+}
+
+.message-item.grouped.self .message-bubble {
+  border-top-right-radius: var(--radius-sm);
+}
+
+.message-item.grouped.other .message-bubble {
+  border-top-left-radius: var(--radius-sm);
+}
+
 .message-meta {
   display: flex;
   align-items: baseline;
@@ -501,6 +519,8 @@ body {
 .message-time {
   font-size: 0.6875rem;
   color: var(--text-muted);
+  cursor: default;
+  user-select: none;
 }
 
 .message-bubble {
@@ -523,6 +543,54 @@ body {
   background-color: var(--bubble-other);
   color: var(--text-primary);
   border-bottom-left-radius: var(--radius-sm);
+}
+
+/* Floating Jump-to-Bottom / New Messages Button */
+.scroll-bottom-btn {
+  position: absolute;
+  bottom: 4.75rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-secondary);
+  color: var(--accent);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  z-index: 20;
+  transition: opacity var(--transition-fast) ease, transform var(--transition-fast) ease, background-color var(--transition-fast) ease;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scroll-bottom-btn:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--accent-hover);
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 0 6px 16px var(--shadow-color);
+}
+
+.scroll-bottom-btn:active {
+  transform: translateX(-50%) translateY(0);
+}
+
+.scroll-bottom-btn.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.scroll-bottom-text {
+  white-space: nowrap;
 }
 
 /* System Notice Messages */

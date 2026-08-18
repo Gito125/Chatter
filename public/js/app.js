@@ -153,6 +153,31 @@ window.Chatter.app = {
       });
     }
 
+    // Handle scroll events in messages container to dismiss jump button when near bottom
+    if (ui.elements.messagesContainer) {
+      ui.elements.messagesContainer.addEventListener('scroll', () => {
+        if (ui.isUserNearBottom()) {
+          ui.hideScrollButton();
+        }
+      });
+    }
+
+    // Handle floating scroll-to-bottom jump button click
+    if (ui.elements.scrollBottomBtn) {
+      ui.elements.scrollBottomBtn.addEventListener('click', () => {
+        ui.scrollToBottom(true);
+        ui.hideScrollButton();
+        ui.focusMessageInput();
+      });
+    }
+
+    // Inbound socket event: message history snapshot on join
+    socket.onMessageHistory((data) => {
+      if (data && Array.isArray(data.messages)) {
+        ui.renderMessageHistory(data.messages, socket.currentUser);
+      }
+    });
+
     // Inbound socket event: message received
     socket.onMessageReceive((message) => {
       // Clear remote typing indicator when user sends a message
@@ -161,8 +186,17 @@ window.Chatter.app = {
       }
 
       const isSelf = message.username === socket.currentUser;
+      const wasNearBottom = ui.isUserNearBottom();
+
       ui.renderMessage(message, isSelf);
-      ui.scrollToBottom();
+
+      if (isSelf || wasNearBottom) {
+        ui.scrollToBottom(false);
+        ui.hideScrollButton();
+      } else {
+        // User has scrolled up to review history: preserve scroll position and show jump button
+        ui.showScrollButton();
+      }
     });
 
     // Inbound socket event: peer typing activity update
@@ -202,8 +236,11 @@ window.Chatter.app = {
         ui.renderUserList(data.users, socket.currentUser);
       }
       if (data && data.username && data.username !== socket.currentUser) {
+        const wasNearBottom = ui.isUserNearBottom();
         ui.renderSystemMessage(`${data.username} joined the chat`);
-        ui.scrollToBottom();
+        if (wasNearBottom) {
+          ui.scrollToBottom();
+        }
       }
     });
 
@@ -218,8 +255,11 @@ window.Chatter.app = {
         ui.renderUserList(data.users, socket.currentUser);
       }
       if (data && data.username) {
+        const wasNearBottom = ui.isUserNearBottom();
         ui.renderSystemMessage(`${data.username} left the chat`);
-        ui.scrollToBottom();
+        if (wasNearBottom) {
+          ui.scrollToBottom();
+        }
       }
     });
   },

@@ -180,3 +180,56 @@ test('Sprint 3 Gate 7 - Frontend App Debounce Engine and Safety Timers', () => {
   assert.match(appJs, /clearRemoteUserTyping\s*\(/);
 });
 
+test('Sprint 4 Gate 1 - Message History Event Constant Architecture', () => {
+  const { EVENTS } = require('../src/socket/events');
+  assert.equal(EVENTS.MESSAGE_HISTORY, 'message:history');
+});
+
+test('Sprint 4 Gate 2 - Store History Access Method (getRecentMessages)', () => {
+  const storeModule = require('../src/store/memory');
+  assert.equal(typeof storeModule.getRecentMessages, 'function');
+});
+
+test('Sprint 4 Gate 3 - Server History Dispatch on User Join', () => {
+  const handlersCode = fs.readFileSync(path.join(ROOT_DIR, 'src/socket/handlers.js'), 'utf8');
+  assert.match(handlersCode, /socket\.emit\s*\(\s*EVENTS\.MESSAGE_HISTORY,\s*\{\s*messages:\s*store\.getRecentMessages\(/);
+});
+
+test('Sprint 4 Gate 4 - Semantic HTML Floating Jump Button', () => {
+  const html = fs.readFileSync(path.join(ROOT_DIR, 'public/index.html'), 'utf8');
+  assert.match(html, /id="scroll-bottom-btn"/);
+  assert.match(html, /id="scroll-bottom-text"/);
+  assert.match(html, /class="[^"]*scroll-bottom-btn[^"]*"/);
+});
+
+test('Sprint 4 Gate 5 - CSS Tokens and Grouping Styles (Zero Hardcoded Colors)', () => {
+  const css = fs.readFileSync(path.join(ROOT_DIR, 'public/css/styles.css'), 'utf8');
+  assert.match(css, /\.message-item\.grouped/);
+  assert.match(css, /\.scroll-bottom-btn/);
+  assert.match(css, /\.scroll-bottom-btn\.hidden/);
+});
+
+test('Sprint 4 Gate 6 - Frontend UI Grouping and Timestamp Tooltip Logic', () => {
+  const uiJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/ui.js'), 'utf8');
+  assert.match(uiJs, /GROUPING_WINDOW_MS\s*:\s*120000/);
+  assert.match(uiJs, /formatFullDate\s*\(/);
+  assert.match(uiJs, /renderMessageHistory\s*\(/);
+});
+
+test('Sprint 4 Gate 7 - Frontend UI Smart Scroll and Jump Button Helpers', () => {
+  const uiJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/ui.js'), 'utf8');
+  assert.match(uiJs, /isUserNearBottom\s*\(/);
+  assert.match(uiJs, /scrollToBottom\s*\(/);
+  assert.match(uiJs, /showScrollButton\s*\(/);
+  assert.match(uiJs, /hideScrollButton\s*\(/);
+});
+
+test('Sprint 4 Gate 8 - Frontend Socket and App Orchestration for History and Smart Scroll', () => {
+  const socketJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/socket.js'), 'utf8');
+  const appJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/app.js'), 'utf8');
+
+  assert.match(socketJs, /onMessageHistory\s*\(/);
+  assert.match(appJs, /socket\.onMessageHistory\s*\(/);
+  assert.match(appJs, /scrollBottomBtn/);
+});
+

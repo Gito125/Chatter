@@ -1,7 +1,8 @@
 /**
  * UI Module
  *
- * Handles DOM manipulation, rendering messages, and managing modal views.
+ * Handles DOM manipulation, rendering messages, grouping consecutive messages,
+ * formatting localized timestamps, and managing smart auto-scroll interactions.
  * Strictly avoids raw innerHTML injection of user data to prevent XSS attacks.
  *
  * Learning Note:
@@ -13,6 +14,13 @@ window.Chatter = window.Chatter || {};
 
 window.Chatter.ui = {
   elements: {},
+
+  // Configuration constants
+  GROUPING_WINDOW_MS: 120000, // 120 seconds / 2 minutes
+  SCROLL_THRESHOLD_PX: 100, // 100 pixels threshold for auto-scroll
+
+  // Tracking state for consecutive message grouping
+  lastMessageState: null,
 
   /**
    * Cache DOM elements for efficient access.
@@ -36,6 +44,8 @@ window.Chatter.ui = {
       userCountBadge: document.getElementById('user-count-badge'),
       typingIndicator: document.getElementById('typing-indicator'),
       typingText: document.getElementById('typing-text'),
+      scrollBottomBtn: document.getElementById('scroll-bottom-btn'),
+      scrollBottomText: document.getElementById('scroll-bottom-text'),
     };
   },
 
@@ -85,6 +95,7 @@ window.Chatter.ui = {
     if (!isoString) return '';
     try {
       const date = new Date(isoString);
+      if (Number.isNaN(date.getTime())) return '';
       return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
     } catch {
       return '';
@@ -92,17 +103,48 @@ window.Chatter.ui = {
   },
 
   /**
-   * Render a chat message bubble into the messages feed.
-   * All user-supplied strings are set via textContent to prevent XSS.
+   * Format ISO timestamp into a localized full date/time string for tooltips.
+   * @param {string} isoString - ISO formatted timestamp
+   * @returns {string} Localized full date and time string
+   */
+  formatFullDate(isoString) {
+    if (!isoString) return '';
+    try {
+      const date = new Date(isoString);
+      if (Number.isNaN(date.getTime())) return '';
+      return date.toLocaleString();
+    } catch {
+      return '';
+    }
+  },
+
+  /**
+   * Render a chat message bubble into the messages feed with consecutive grouping.
+   * All user-supplied strings are set via textContent and safe setAttribute to prevent XSS.
    * @param {Object} message - Message object { id, username, text, timestamp }
    * @param {boolean} isSelf - Whether the current user sent the message
    */
   renderMessage(message, isSelf) {
     if (!this.elements.messagesList || !message) return;
 
+    const rawTime = message.timestamp ? new Date(message.timestamp).getTime() : Date.now();
+    const msgTime = Number.isNaN(rawTime) ? Date.now() : rawTime;
+    const fullDateTooltip = this.formatFullDate(message.timestamp);
+
+    // Evaluate consecutive message grouping (same user, same perspective, within 120s)
+    const isGrouped = Boolean(
+      this.lastMessageState &&
+      this.lastMessageState.username === message.username &&
+      this.lastMessageState.isSelf === isSelf &&
+      Math.abs(msgTime - this.lastMessageState.timestamp) <= this.GROUPING_WINDOW_MS
+    );
+
     const itemEl = document.createElement('div');
     itemEl.classList.add('message-item');
     itemEl.classList.add(isSelf ? 'self' : 'other');
+    if (isGrouped) {
+      itemEl.classList.add('grouped');
+    }
     if (message.id) {
       itemEl.dataset.messageId = message.id;
     }
@@ -117,6 +159,9 @@ window.Chatter.ui = {
     const timeEl = document.createElement('span');
     timeEl.classList.add('message-time');
     timeEl.textContent = this.formatTime(message.timestamp);
+    if (fullDateTooltip) {
+      timeEl.setAttribute('title', fullDateTooltip);
+    }
 
     metaEl.appendChild(senderEl);
     metaEl.appendChild(timeEl);
@@ -124,30 +169,25 @@ window.Chatter.ui = {
     const bubbleEl = document.createElement('div');
     bubbleEl.classList.add('message-bubble');
     bubbleEl.textContent = message.text;
+    if (fullDateTooltip) {
+      bubbleEl.setAttribute('title', fullDateTooltip);
+    }
 
     itemEl.appendChild(metaEl);
     itemEl.appendChild(bubbleEl);
 
     this.elements.messagesList.appendChild(itemEl);
+
+    // Update last message state for grouping tracking
+    this.lastMessageState = {
+      username: message.username,
+      timestamp: msgTime,
+      isSelf,
+    };
   },
 
   /**
-   * Update online user count across header and sidebar badges.
-   * @param {number} count - Active user count
-   */
-  updateUserCount(count) {
-    const safeCount = typeof count === 'number' && count >= 0 ? count : 0;
-    const label = `${safeCount} online`;
-    if (this.elements.userCountText) {
-      this.elements.userCountText.textContent = label;
-    }
-    if (this.elements.sidebarUserCount) {
-      this.elements.sidebarUserCount.textContent = String(safeCount);
-    }
-  },
-
-  /**
-   * Render the active online users roster in the sidebar.
+   * Render active online users roster in the sidebar.
    * Employs strict textContent DOM insertion for complete XSS safety.
    * @param {Array<Object>} users - List of active User objects
    * @param {string} [currentUsername] - Current client username
@@ -218,11 +258,30 @@ window.Chatter.ui = {
   },
 
   /**
+   * Update online user count across header and sidebar badges.
+   * @param {number} count - Active user count
+   */
+  updateUserCount(count) {
+    const safeCount = typeof count === 'number' && count >= 0 ? count : 0;
+    const label = `${safeCount} online`;
+    if (this.elements.userCountText) {
+      this.elements.userCountText.textContent = label;
+    }
+    if (this.elements.sidebarUserCount) {
+      this.elements.sidebarUserCount.textContent = String(safeCount);
+    }
+  },
+
+  /**
    * Render a centered system notice (e.g., "Alice joined the chat").
+   * Resets grouping state so subsequent messages start fresh groups.
    * @param {string} text - Notice text
    */
   renderSystemMessage(text) {
     if (!this.elements.messagesList || !text) return;
+
+    // Reset grouping anchor on intervening system notices
+    this.lastMessageState = null;
 
     const systemEl = document.createElement('div');
     systemEl.classList.add('message-system');
@@ -232,12 +291,70 @@ window.Chatter.ui = {
   },
 
   /**
-   * Scroll the message viewport down to the latest message.
+   * Determine if the user's scroll position is within threshold distance of bottom.
+   * @param {number} [threshold=this.SCROLL_THRESHOLD_PX] - Pixel threshold
+   * @returns {boolean} True if within threshold of bottom
    */
-  scrollToBottom() {
-    if (this.elements.messagesContainer) {
-      this.elements.messagesContainer.scrollTop = this.elements.messagesContainer.scrollHeight;
+  isUserNearBottom(threshold = this.SCROLL_THRESHOLD_PX) {
+    const container = this.elements.messagesContainer;
+    if (!container) return true;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    return distanceFromBottom <= threshold;
+  },
+
+  /**
+   * Scroll the message viewport down to the latest message.
+   * @param {boolean} [smooth=false] - Whether to animate smooth scroll
+   */
+  scrollToBottom(smooth = false) {
+    const container = this.elements.messagesContainer;
+    if (!container) return;
+
+    if (smooth && typeof container.scrollTo === 'function') {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    } else {
+      container.scrollTop = container.scrollHeight;
     }
+  },
+
+  /**
+   * Show the floating "New messages below ↓" jump button.
+   */
+  showScrollButton() {
+    if (this.elements.scrollBottomBtn) {
+      this.elements.scrollBottomBtn.classList.remove('hidden');
+    }
+  },
+
+  /**
+   * Hide the floating "New messages below ↓" jump button.
+   */
+  hideScrollButton() {
+    if (this.elements.scrollBottomBtn) {
+      this.elements.scrollBottomBtn.classList.add('hidden');
+    }
+  },
+
+  /**
+   * Render historical messages on initial join.
+   * @param {Array<Object>} messages - Array of recent Message objects
+   * @param {string} [currentUsername] - Current user display name
+   */
+  renderMessageHistory(messages, currentUsername) {
+    if (!Array.isArray(messages)) return;
+
+    // Reset grouping state before rendering history
+    this.lastMessageState = null;
+
+    messages.forEach((msg) => {
+      if (msg && msg.text && msg.username) {
+        this.renderMessage(msg, msg.username === currentUsername);
+      }
+    });
+
+    // Unconditionally scroll to bottom and hide jump button for initial history view
+    this.scrollToBottom(false);
+    this.hideScrollButton();
   },
 
   /**
