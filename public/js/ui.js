@@ -58,6 +58,10 @@ window.Chatter.ui = {
       connectionStatus: document.getElementById('connection-status'),
       connectionStatusText: document.getElementById('connection-status-text'),
       connectionStatusDot: document.getElementById('connection-status-dot'),
+      emojiPicker: document.getElementById('emoji-picker'),
+      emojiToggleBtn: document.getElementById('emoji-toggle-btn'),
+      emojiGrid: document.getElementById('emoji-grid'),
+      charCounter: document.getElementById('char-counter'),
     };
   },
 
@@ -75,6 +79,11 @@ window.Chatter.ui = {
   openSidebar() {
     const { usersSidebar, sidebarBackdrop, sidebarToggleBtn } = this.elements;
     if (!usersSidebar) return;
+
+    // Close emoji picker if open when mobile drawer opens
+    if (window.Chatter.emoji && typeof window.Chatter.emoji.closePicker === 'function') {
+      window.Chatter.emoji.closePicker();
+    }
 
     usersSidebar.classList.add('open');
     usersSidebar.setAttribute('aria-hidden', 'false');
@@ -442,11 +451,33 @@ window.Chatter.ui = {
   },
 
   /**
-   * Clear the chat input field.
+   * Clear the chat input field and reset live character counter.
    */
   clearMessageInput() {
     if (this.elements.messageInput) {
       this.elements.messageInput.value = '';
+    }
+    this.updateCharCounter(0);
+  },
+
+  /**
+   * Update live character count and warning/danger threshold indicators.
+   * @param {number} count - Current input character count
+   * @param {number} [max=500] - Maximum allowed characters
+   */
+  updateCharCounter(count, max = 500) {
+    const { charCounter } = this.elements;
+    if (!charCounter) return;
+
+    const safeCount = typeof count === 'number' && count >= 0 ? count : 0;
+    charCounter.textContent = `${safeCount}/${max}`;
+
+    charCounter.classList.remove('warning', 'danger');
+
+    if (safeCount >= max) {
+      charCounter.classList.add('danger');
+    } else if (safeCount >= 450) {
+      charCounter.classList.add('warning');
     }
   },
 

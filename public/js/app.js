@@ -19,8 +19,11 @@ window.Chatter.app = {
    * Initialize the Chatter client application.
    */
   init() {
-    // Initialize UI and Socket subsystems
+    // Initialize UI, Emoji, and Socket subsystems
     window.Chatter.ui.init();
+    if (window.Chatter.emoji && typeof window.Chatter.emoji.init === 'function') {
+      window.Chatter.emoji.init();
+    }
     window.Chatter.socket.init();
 
     this.bindEvents();
@@ -158,10 +161,11 @@ window.Chatter.app = {
       }
     });
 
-    // Handle input typing events with 3000ms debouncing
+    // Handle input typing events with 3000ms debouncing and live character counter
     if (ui.elements.messageInput) {
       ui.elements.messageInput.addEventListener('input', () => {
         const rawText = ui.elements.messageInput ? ui.elements.messageInput.value : '';
+        ui.updateCharCounter(rawText.length);
         const text = rawText.trim();
 
         // If input cleared (e.g. backspace/delete), immediately cancel typing
@@ -190,6 +194,11 @@ window.Chatter.app = {
     if (ui.elements.messageForm) {
       ui.elements.messageForm.addEventListener('submit', (e) => {
         e.preventDefault();
+
+        // Close emoji picker popover upon message submit
+        if (window.Chatter.emoji && typeof window.Chatter.emoji.closePicker === 'function') {
+          window.Chatter.emoji.closePicker();
+        }
 
         // Immediately stop typing indicator upon sending
         this.stopSelfTyping();

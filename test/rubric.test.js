@@ -449,5 +449,102 @@ test('Sprint 7 Gate 7 - App Module Resilience Coordination', () => {
   assert.match(appJs, /rejoin/, 'Must invoke socket.rejoin on reconnection');
 });
 
+test('Sprint 8 Gate 1 - Lucide Inline SVG Iconography Architecture', () => {
+  const html = fs.readFileSync(path.join(ROOT_DIR, 'public/index.html'), 'utf8');
+  assert.match(html, /svg class="[^"]*lucide-message-square/, 'Missing Lucide message-square SVG');
+  assert.match(html, /svg class="[^"]*lucide-menu/, 'Missing Lucide menu SVG');
+  assert.match(html, /svg class="[^"]*lucide-x/, 'Missing Lucide x SVG');
+  assert.match(html, /svg class="[^"]*lucide-users/, 'Missing Lucide users SVG');
+  assert.match(html, /svg class="[^"]*lucide-smile/, 'Missing Lucide smile SVG');
+  assert.match(html, /svg class="[^"]*lucide-send/, 'Missing Lucide send SVG');
+  assert.match(html, /svg class="[^"]*lucide-arrow-down/, 'Missing Lucide arrow-down SVG');
+
+  const themeJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/theme.js'), 'utf8');
+  assert.match(themeJs, /lucide-sun/, 'theme.js must use Lucide sun SVG');
+  assert.match(themeJs, /lucide-moon/, 'theme.js must use Lucide moon SVG');
+});
+
+test('Sprint 8 Gate 2 - Emoji Module API on window.Chatter.emoji', () => {
+  const emojiJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/emoji.js'), 'utf8');
+  assert.match(emojiJs, /window\.Chatter\.emoji\s*=/);
+  assert.match(emojiJs, /getEmojis\s*\(/);
+  assert.match(emojiJs, /renderPicker\s*\(/);
+  assert.match(emojiJs, /insertEmoji\s*\(/);
+  assert.match(emojiJs, /isOpen\s*\(/);
+  assert.match(emojiJs, /openPicker\s*\(/);
+  assert.match(emojiJs, /closePicker\s*\(/);
+  assert.match(emojiJs, /togglePicker\s*\(/);
+  assert.match(emojiJs, /bindEvents\s*\(/);
+  assert.match(emojiJs, /init\s*\(/);
+});
+
+test('Sprint 8 Gate 3 - Emoji Caret-Preserving Insertion & Synthetic Input Event', () => {
+  const emojiJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/emoji.js'), 'utf8');
+  assert.match(emojiJs, /selectionStart/);
+  assert.match(emojiJs, /selectionEnd/);
+  assert.match(emojiJs, /setSelectionRange/);
+  assert.match(emojiJs, /dispatchEvent\s*\(\s*new\s+Event\s*\(\s*['"]input['"]/);
+});
+
+test('Sprint 8 Gate 4 - Semantic HTML Character Counter and Constraints', () => {
+  const html = fs.readFileSync(path.join(ROOT_DIR, 'public/index.html'), 'utf8');
+  assert.match(html, /id="emoji-picker"/);
+  assert.match(html, /id="emoji-toggle-btn"/);
+  assert.match(html, /id="emoji-grid"/);
+  assert.match(html, /id="char-counter"/);
+  assert.match(html, /maxlength="25"/);
+  assert.match(html, /maxlength="500"/);
+  assert.match(html, /aria-controls="emoji-picker"/);
+});
+
+test('Sprint 8 Gate 5 - UI Module Character Counter & Threshold Mechanics', () => {
+  const uiJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/ui.js'), 'utf8');
+  assert.match(uiJs, /updateCharCounter\s*\(/);
+  assert.match(uiJs, /charCounter/);
+  assert.match(uiJs, /warning/);
+  assert.match(uiJs, /danger/);
+});
+
+test('Sprint 8 Gate 6 - CSS Token Compliance & Micro-Interactions (Zero Hardcoded Colors)', () => {
+  const css = fs.readFileSync(path.join(ROOT_DIR, 'public/css/styles.css'), 'utf8');
+  assert.match(css, /\.emoji-picker/);
+  assert.match(css, /\.emoji-btn/);
+  assert.match(css, /\.char-counter/);
+  assert.match(css, /\.char-counter\.warning/);
+  assert.match(css, /\.char-counter\.danger/);
+  assert.match(css, /\.btn-send/);
+  assert.match(css, /\.lucide/);
+
+  // Validate zero hardcoded colors
+  const lines = css.split('\n');
+  let insideThemeBlock = false;
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith(':root') || trimmed.startsWith('[data-theme=')) {
+      insideThemeBlock = true;
+    }
+    if (insideThemeBlock && trimmed.endsWith('}')) {
+      insideThemeBlock = false;
+      return;
+    }
+
+    if (!insideThemeBlock) {
+      const match = trimmed.match(/#[0-9a-fA-F]{3,6}|rgba?\(|hsla?\(/);
+      assert.ok(!match, `Hardcoded color literal found at line ${index + 1}: ${trimmed}`);
+    }
+  });
+});
+
+test('Sprint 8 Gate 7 - Accessibility Landmarks & ARIA Attributes', () => {
+  const html = fs.readFileSync(path.join(ROOT_DIR, 'public/index.html'), 'utf8');
+  assert.match(html, /role="log"/);
+  assert.match(html, /role="dialog"/);
+  assert.match(html, /aria-live="polite"/);
+  assert.match(html, /aria-expanded="false"/);
+  assert.match(html, /aria-label="[^"]*emoji[^"]*"/i);
+});
+
+
 
 
