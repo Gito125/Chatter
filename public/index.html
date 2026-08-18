@@ -47,6 +47,17 @@
     <!-- Chat Header -->
     <header class="chat-header">
       <div class="header-left">
+        <button
+          id="sidebar-toggle-btn"
+          class="btn-icon sidebar-toggle-btn"
+          type="button"
+          aria-label="Open online users roster"
+          aria-expanded="false"
+          aria-controls="users-sidebar"
+          title="Open online users"
+        >
+          <span id="sidebar-toggle-icon" class="sidebar-toggle-icon" aria-hidden="true">☰</span>
+        </button>
         <div class="brand-title">
           <span class="brand-logo-text">Chatter</span>
           <span class="room-pill">#general</span>
@@ -72,11 +83,25 @@
 
     <!-- Main Chat Layout (Sidebar + Chat Area) -->
     <div class="chat-main-container">
+      <!-- Mobile Drawer Backdrop Overlay -->
+      <div id="sidebar-backdrop" class="sidebar-backdrop hidden" aria-hidden="true"></div>
+
       <!-- Online Users Sidebar -->
-      <aside id="users-sidebar" class="users-sidebar" aria-label="Online Users">
+      <aside id="users-sidebar" class="users-sidebar" aria-label="Online Users" aria-hidden="true">
         <div class="sidebar-header">
-          <h2 class="sidebar-title">Online Users</h2>
-          <span id="sidebar-user-count" class="badge">0</span>
+          <div class="sidebar-header-left">
+            <h2 class="sidebar-title">Online Users</h2>
+            <span id="sidebar-user-count" class="badge">0</span>
+          </div>
+          <button
+            id="sidebar-close-btn"
+            class="btn-icon sidebar-close-btn"
+            type="button"
+            aria-label="Close online users roster"
+            title="Close online users"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
         <div class="sidebar-content">
           <ul id="users-list" class="users-list" role="list">

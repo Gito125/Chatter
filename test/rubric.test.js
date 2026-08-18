@@ -330,4 +330,67 @@ test('Sprint 5 Gate 7 - System Scheme Sync & FOUC Prevention', () => {
   assert.match(themeJs, /window\.Chatter\.theme\.init\(\)/);
 });
 
+test('Sprint 6 Gate 1 - Semantic HTML Mobile Drawer and Toggle Button Structure', () => {
+  const html = fs.readFileSync(path.join(ROOT_DIR, 'public/index.html'), 'utf8');
+  assert.match(html, /id="sidebar-toggle-btn"/, 'Must contain #sidebar-toggle-btn');
+  assert.match(html, /aria-controls="users-sidebar"/, 'Toggle button must have aria-controls="users-sidebar"');
+  assert.match(html, /aria-expanded="false"/, 'Toggle button must start with aria-expanded="false"');
+  assert.match(html, /id="sidebar-backdrop"/, 'Must contain #sidebar-backdrop overlay');
+  assert.match(html, /id="users-sidebar"/, 'Must contain #users-sidebar');
+  assert.match(html, /id="sidebar-close-btn"/, 'Must contain #sidebar-close-btn');
+});
+
+test('Sprint 6 Gate 2 - Mobile-First CSS Drawer and 100dvh Tokens', () => {
+  const css = fs.readFileSync(path.join(ROOT_DIR, 'public/css/styles.css'), 'utf8');
+  assert.match(css, /100dvh/, 'Must configure 100dvh dynamic viewport unit');
+  assert.match(css, /body\.drawer-open/, 'Must have body.drawer-open class');
+  assert.match(css, /transform:\s*translateX\(-100%\)/, 'Drawer must slide offscreen by default');
+  assert.match(css, /transform:\s*translateX\(0\)/, 'Drawer must slide in when open');
+  assert.match(css, /\.sidebar-backdrop/, 'Must define .sidebar-backdrop styles');
+  assert.match(css, /\.sidebar-backdrop\.hidden/, 'Must define .sidebar-backdrop.hidden styles');
+  assert.match(css, /@media\s*\(min-width:\s*768px\)/, 'Must define desktop breakpoint');
+  assert.match(css, /\.sidebar-toggle-btn[^{]*\{[^}]*display:\s*none/s, 'Desktop breakpoint must hide sidebar toggle button');
+});
+
+test('Sprint 6 Gate 3 - Zero Hardcoded Colors in Mobile CSS', () => {
+  const css = fs.readFileSync(path.join(ROOT_DIR, 'public/css/styles.css'), 'utf8');
+  const lines = css.split('\n');
+  let insideThemeBlock = false;
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith(':root') || trimmed.startsWith('[data-theme=')) {
+      insideThemeBlock = true;
+    }
+    if (insideThemeBlock && trimmed.endsWith('}')) {
+      insideThemeBlock = false;
+      return;
+    }
+
+    if (!insideThemeBlock) {
+      const match = trimmed.match(/#[0-9a-fA-F]{3,6}|rgba?\(|hsla?\(/);
+      assert.ok(!match, `Hardcoded color literal found at line ${index + 1}: ${trimmed}`);
+    }
+  });
+});
+
+test('Sprint 6 Gate 4 - UI Module Drawer Management API', () => {
+  const uiJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/ui.js'), 'utf8');
+  assert.match(uiJs, /openSidebar\s*\(/, 'Must export openSidebar method');
+  assert.match(uiJs, /closeSidebar\s*\(/, 'Must export closeSidebar method');
+  assert.match(uiJs, /toggleSidebar\s*\(/, 'Must export toggleSidebar method');
+  assert.match(uiJs, /isSidebarOpen\s*\(/, 'Must export isSidebarOpen method');
+  assert.match(uiJs, /sidebarToggleBtn/, 'Must cache sidebarToggleBtn in elements');
+  assert.match(uiJs, /sidebarBackdrop/, 'Must cache sidebarBackdrop in elements');
+});
+
+test('Sprint 6 Gate 5 - App Module Mobile Event Wiring', () => {
+  const appJs = fs.readFileSync(path.join(ROOT_DIR, 'public/js/app.js'), 'utf8');
+  assert.match(appJs, /sidebarToggleBtn.*addEventListener/, 'Must bind click listener to sidebarToggleBtn');
+  assert.match(appJs, /sidebarBackdrop.*addEventListener/, 'Must bind click listener to sidebarBackdrop');
+  assert.match(appJs, /keydown.*Escape|e\.key === 'Escape'/, 'Must bind Escape key listener to close drawer');
+  assert.match(appJs, /resize.*innerWidth|window\.innerWidth >= 768/, 'Must bind window resize listener to auto-close drawer on desktop');
+});
+
+
 
